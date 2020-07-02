@@ -12,7 +12,7 @@ ctypedef fused my_type:
 cdef my_type _logtrace(my_type[:, ::1] arr) nogil:
 	cdef Py_ssize_t X = arr.shape[0]
 	cdef Py_ssize_t x
-	cdef my_type out = 0
+	cdef my_type out = 0.
 
 	for x in range(X):
 		out += log(arr[x, x])
