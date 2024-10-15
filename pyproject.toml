@@ -1,0 +1,49 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "cython==3.0.10",
+  "numpy",
+  "setuptools",
+]
+
+[project]
+name = "unclog"
+version = "0.0.1"
+readme = { file = "readme.md", content-type = "text/markdown" }
+license = { text = "ISC License" }
+authors = [ { name = "Dobatymo" } ]
+requires-python = ">=3.8"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+urls.Home = "https://github.com/Dobatymo/unclog"
+
+[tool.setuptools]
+packages = [ "unclog" ]
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.mypy]
+allow_redefinition = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[tool.bandit]
+skips = [ "B101" ]
+
+[tool.cython-lint]
+max-line-length = 120
+ignore = [ "W191" ]

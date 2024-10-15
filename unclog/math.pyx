@@ -2,7 +2,6 @@ cimport cython
 from cython.parallel cimport prange
 from libc.math cimport log
 import numpy as np
-cimport numpy as cnp
 
 ctypedef fused my_float:
 	float
@@ -11,10 +10,11 @@ ctypedef fused my_float:
 ctypedef fused my_int:
 	int
 	long
+	long long
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef my_float _logtrace(my_float[:, ::1] arr) nogil:
+cdef my_float _logtrace(my_float[:, ::1] arr) noexcept nogil:
 	cdef Py_ssize_t X = arr.shape[0]
 	cdef Py_ssize_t x
 	cdef my_float out = 0.
@@ -29,7 +29,7 @@ def logtrace(my_float[:, ::1] arr):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void _logtrace_batch(my_float[:, :, ::1] arr, my_float[::1] out) nogil:
+cdef void _logtrace_batch(my_float[:, :, ::1] arr, my_float[::1] out) noexcept nogil:
 	cdef Py_ssize_t B = arr.shape[0]
 	cdef Py_ssize_t X = arr.shape[1]
 
@@ -61,7 +61,7 @@ cdef my_int _max(my_int[:, ::1] arr):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void _bincount_batch(my_int[:, ::1] arr, my_int[:, ::1] out) nogil:
+cdef void _bincount_batch(my_int[:, ::1] arr, int[:, ::1] out) noexcept nogil:
 	cdef Py_ssize_t B = arr.shape[0]
 	cdef Py_ssize_t X = arr.shape[1]
 
@@ -79,7 +79,7 @@ def bincount_batch(my_int[:, ::1] arr, int axis=-1, int minlength=0):
 	if axis != -1:
 		raise ValueError("Only bincount in the last axis is supported")
 
-	cdef my_int[:, ::1] out = np.zeros((B, N), dtype=np.int)
+	cdef int[:, ::1] out = np.zeros((B, N), dtype=np.int32)
 
 	_bincount_batch(arr, out)
 

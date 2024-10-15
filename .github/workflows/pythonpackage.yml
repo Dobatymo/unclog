@@ -1,0 +1,95 @@
+name: Python package
+
+on:
+  push:
+    branches:
+    - '**'
+    tags-ignore:
+    - '**'
+    paths-ignore:
+    - .pre-commit-config.yaml
+  pull_request:
+  release:
+    types:
+    - published
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install black isort flake8 bandit[toml]
+    - run: python -m black . --check
+    - run: python -m isort . --check-only
+    - run: python -m flake8 .
+    - run: python -m bandit . --recursive -c pyproject.toml
+
+  build-wheels:
+    needs: lint
+
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install cibuildwheel==2.21.3
+    - name: Build wheels
+      run: |
+        python -m cibuildwheel --output-dir wheelhouse
+      env:
+        CIBW_SKIP: pp*
+    - uses: actions/upload-artifact@v4
+      with:
+        name: artifact-wheels-${{ matrix.os }}
+        path: wheelhouse/*.whl
+
+  build-sdist:
+    needs: lint
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install build
+    - name: Build dists
+      run: |
+        python -m build --sdist
+    - uses: actions/upload-artifact@v4
+      with:
+        name: artifact-sdist
+        path: dist/*.tar.gz
+
+  upload-pypi:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    needs: [build-wheels, build-sdist]
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: artifact-*
+        path: dist
+        merge-multiple: true
+
+    - uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
